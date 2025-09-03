@@ -1,103 +1,154 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from 'react';
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            제작자 : 키노{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [items, setItems] = useState<string[]>(['항목 1', '항목 2', '항목 3', '항목 4', '항목 5', '항목 6']);
+  const [newItem, setNewItem] = useState<string>('');
+  const [rotation, setRotation] = useState<number>(0);
+  const [spinning, setSpinning] = useState<boolean>(false);
+  const [selectedItem, setSelectedItem] = useState<string | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const addItem = () => {
+    if (newItem.trim() && !items.includes(newItem.trim())) {
+      setItems([...items, newItem.trim()]);
+      setNewItem('');
+    }
+  };
+
+  const removeItem = (itemToRemove: string) => {
+    setItems(items.filter(item => item !== itemToRemove));
+  };
+
+  const spin = () => {
+    if (spinning || items.length === 0) return;
+
+    setSpinning(true);
+    setSelectedItem(null);
+
+    const totalItems = items.length;
+    const randomDegree = Math.floor(Math.random() * 360);
+    const extraRotations = 360 * 5; // 5바퀴 추가 회전
+    const newRotation = rotation + extraRotations + randomDegree;
+
+    setRotation(newRotation);
+
+    setTimeout(() => {
+      // 수학적 계산을 통한 정확한 선택 알고리즘
+      const finalRotation = newRotation % 360;
+      const sliceAngle = 360 / totalItems;
+
+      // 포인터는 12시 방향(0도)에 고정되어 있음
+      // 룰렛이 시계방향으로 회전하므로, 포인터 기준에서 역방향으로 계산
+      // 첫 번째 항목은 12시~1시 방향에 위치하므로 오프셋 적용
+      let pointerAngle = (360 - finalRotation + (sliceAngle / 2)) % 360;
+
+      // 음수 각도를 양수로 변환
+      if (pointerAngle < 0) {
+        pointerAngle += 360;
+      }
+
+      // 선택된 항목의 인덱스 계산
+      const selectedIndex = Math.floor(pointerAngle / sliceAngle) % totalItems;
+
+      console.log('Final rotation:', finalRotation);
+      console.log('Slice angle:', sliceAngle);
+      console.log('Pointer angle:', pointerAngle);
+      console.log('Selected index:', selectedIndex);
+      console.log('Selected item:', items[selectedIndex]);
+
+      setSelectedItem(items[selectedIndex]);
+      setSpinning(false);
+    }, 5000); // 5초 동안 회전
+  };
+
+  const getSliceColor = (index: number) => {
+    // 각 항목별로 구별되는 고유 색상 (RGB 값이 충분히 다른 색상들)
+    const colors = [
+      '#FF0000', // 빨강
+      '#00FF00', // 초록
+      '#0000FF', // 파랑
+      '#FFFF00', // 노랑
+      '#FF00FF', // 마젠타
+      '#00FFFF', // 시안
+      '#FF8000', // 주황
+      '#8000FF', // 보라
+      '#FF0080', // 분홍
+      '#80FF00', // 라임
+      '#0080FF', // 하늘색
+      '#FF8080'  // 연빨강
+    ];
+    return colors[index % colors.length];
+  };
+
+  return (
+    <div className="container">
+      <h1>룰렛 게임</h1>
+      <div className="roulette-container">
+        <div
+          className="roulette"
+          style={{
+            transform: `rotate(${rotation}deg)`,
+            transition: spinning ? 'transform 5s cubic-bezier(0.25, 0.1, 0.25, 1)' : 'none'
+          }}
+        >
+          {items.map((item, index) => {
+            const sliceAngle = 360 / items.length;
+            const rotateAngle = sliceAngle * index;
+
+            return (
+              <div
+                key={item}
+                className="slice"
+                style={{
+                  transform: `rotate(${rotateAngle}deg) skewY(${90 - sliceAngle}deg)`,
+                  backgroundColor: getSliceColor(index)
+                }}
+              >
+                <span style={{
+                  transform: `skewY(${-(90 - sliceAngle)}deg) rotate(${sliceAngle / 2}deg)`,
+                  display: 'block'
+                }}>
+                  {item}
+                </span>
+              </div>
+            );
+          })}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+        <div className="pointer"></div>
+      </div>
+
+      {selectedItem && !spinning && (
+        <div className="result">
+          선택된 항목: <strong>{selectedItem}</strong>
+        </div>
+      )}
+
+      <button onClick={spin} disabled={spinning || items.length < 2}>
+        {spinning ? '돌아가는 중...' : '룰렛 돌리기'}
+      </button>
+
+      <div className="item-management">
+        <h2>항목 관리</h2>
+        <div className="add-item">
+          <input
+            type="text"
+            value={newItem}
+            onChange={(e) => setNewItem(e.target.value)}
+            placeholder="새 항목 추가"
+            onKeyPress={(e) => e.key === 'Enter' && addItem()}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          <button onClick={addItem}>추가</button>
+        </div>
+        <ul>
+          {items.map(item => (
+            <li key={item}>
+              {item}
+              <button onClick={() => removeItem(item)}>삭제</button>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
