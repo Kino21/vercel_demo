@@ -31,9 +31,10 @@ export default function Home() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // 캔버스 크기 설정
-    canvas.width = 400;
-    canvas.height = 400;
+    // 반응형 캔버스 크기 설정
+    const containerWidth = Math.min(350, window.innerWidth - 80); // 모바일 고려
+    canvas.width = containerWidth;
+    canvas.height = containerWidth;
 
     const [cw, ch] = [canvas.width / 2, canvas.height / 2];
     const arc = (2 * Math.PI) / items.length;
@@ -51,9 +52,10 @@ export default function Home() {
       ctx.closePath();
     }
 
-    // 텍스트 그리기
+    // 텍스트 그리기 (크기 조정)
     ctx.fillStyle = "#fff";
-    ctx.font = "18px Arial";
+    const fontSize = Math.max(12, containerWidth / 25); // 반응형 폰트 크기
+    ctx.font = `${fontSize}px Arial`;
     ctx.textAlign = "center";
 
     for (let i = 0; i < items.length; i++) {
@@ -62,15 +64,15 @@ export default function Home() {
       ctx.save();
 
       ctx.translate(
-        cw + Math.cos(angle) * (cw - 60),
-        ch + Math.sin(angle) * (ch - 60)
+        cw + Math.cos(angle) * (cw - 50),
+        ch + Math.sin(angle) * (ch - 50)
       );
 
       ctx.rotate(angle + Math.PI / 2);
 
       // 텍스트를 여러 줄로 나누어 그리기
       items[i].split(" ").forEach((text, j) => {
-        ctx.fillText(text, 0, 30 * j);
+        ctx.fillText(text, 0, fontSize * 1.5 * j);
       });
 
       ctx.restore();
@@ -134,6 +136,15 @@ export default function Home() {
     drawRoulette();
   }, [items]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      drawRoulette();
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [items]);
+
   return (
     <div className="container">
       <h1>룰렛 게임</h1>
@@ -146,11 +157,9 @@ export default function Home() {
         <div className="pointer"></div>
       </div>
 
-      {selectedItem && !spinning && (
-        <div className="result">
-          선택된 항목: <strong>{selectedItem}</strong>
-        </div>
-      )}
+      <div className="result">
+        선택된 항목: <strong>{selectedItem || '아직 선택되지 않음'}</strong>
+      </div>
 
       <button onClick={spin} disabled={spinning || items.length < 2}>
         {spinning ? '돌아가는 중...' : '룰렛 돌리기'}
