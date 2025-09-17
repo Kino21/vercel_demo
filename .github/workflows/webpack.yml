@@ -28,3 +28,8 @@ jobs:
       run: |
         npm install
         npx webpack
+
+        # 여기서 바로 console.log()와 같은 효과를 낼 수 있습니다.
+          echo "APP_KEY is set and ready to use."
+          echo "::add-mask::$APP_KEY" # 마스킹 처리하여 로그에 출력
+          echo "App Key: $APP_KEY"
