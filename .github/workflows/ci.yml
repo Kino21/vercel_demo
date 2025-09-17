@@ -1,0 +1,35 @@
+# 파일명: .github/workflows/ci.yml
+
+name: Next.js CI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. 리포지토리 코드를 가상 환경으로 가져옵니다.
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. Node.js 환경을 설정합니다.
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm' # npm 캐시를 활성화하여 의존성 설치 속도를 높입니다.
+
+      # 3. Next.js 프로젝트 의존성을 설치합니다.
+      - name: Install dependencies
+        run: npm install
+
+      # 4. Next.js 앱을 빌드합니다.
+      - name: Build Next.js App
+        env:
+          # 시크릿을 환경 변수로 설정합니다.
+          NEXT_PUBLIC_APP_KEY: ${{ secrets.APP_KEY }}
+        run: npm run build

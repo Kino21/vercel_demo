@@ -134,7 +134,7 @@ export default function Home() {
 
   useEffect(() => {
     // 1. process.env를 통해 환경 변수에 접근합니다.
-    const appKey = process.env.APP_KEY;
+    const appKey = process.env.NEXT_PUBLIC_APP_KEY;
 
     // 2. console.log()로 출력합니다.
     console.log('App Key:', appKey);
