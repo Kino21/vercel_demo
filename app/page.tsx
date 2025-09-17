@@ -137,7 +137,7 @@ export default function Home() {
     const appKey = process.env.NEXT_PUBLIC_APP_KEY;
 
     // 2. console.log()로 출력합니다.
-    console.log('App Key:', appKey);
+    console.log('App Key 222:', appKey);
 
     drawRoulette();
   }, [items]);
